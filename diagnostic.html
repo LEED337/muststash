@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>MustStash Diagnostic Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #2E7D32;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      background-color: #f9f9f9;
+    }
+    .success {
+      color: #2E7D32;
+      font-weight: bold;
+    }
+    .error {
+      color: #c62828;
+      font-weight: bold;
+    }
+    button {
+      background-color: #2E7D32;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #1b5e20;
+    }
+    pre {
+      background-color: #f1f1f1;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>MustStash GitHub Pages Diagnostic</h1>
+  
+  <div class="card">
+    <h2>Repository Information</h2>
+    <p>Repository: <a href="https://github.com/LEED337/muststash" target="_blank">LEED337/muststash</a></p>
+    <p>Expected app URL: <a href="https://leed337.github.io/muststash/" target="_blank">https://leed337.github.io/muststash/</a></p>
+  </div>
+  
+  <div class="card">
+    <h2>GitHub Pages Status</h2>
+    <p>This diagnostic page is being served from GitHub Pages, which means the basic GitHub Pages setup is working.</p>
+    <p>If you're seeing this page but not your Flutter app, the issue is likely with the Flutter web build or its configuration.</p>
+  </div>
+  
+  <div class="card">
+    <h2>Common Issues & Solutions</h2>
+    <ol>
+      <li><strong>Base URL Issue</strong>: Flutter web builds need the correct base URL. Make sure your build command includes <code>--base-href "/muststash/"</code></li>
+      <li><strong>Index Location</strong>: The index.html file should be at the root of the gh-pages branch</li>
+      <li><strong>Asset Paths</strong>: Check if assets are being loaded from the correct paths</li>
+      <li><strong>404 Handling</strong>: For Flutter web apps with routing, you might need a 404.html file that redirects to index.html</li>
+    </ol>
+  </div>
+  
+  <div class="card">
+    <h2>Test Flutter App Loading</h2>
+    <p>Click the button below to attempt to load the Flutter app in a new tab:</p>
+    <button onclick="window.open('https://leed337.github.io/muststash/index.html', '_blank')">Load Flutter App</button>
+  </div>
+  
+  <div class="card">
+    <h2>Manual Fix</h2>
+    <p>If the automated deployment isn't working, you can manually fix it by:</p>
+    <ol>
+      <li>Build the Flutter web app locally: <code>flutter build web --release --base-href "/muststash/"</code></li>
+      <li>Switch to gh-pages branch: <code>git checkout gh-pages</code></li>
+      <li>Remove all files except .git: <code>git rm -rf .</code></li>
+      <li>Copy build/web contents to root: <code>cp -r build/web/* .</code></li>
+      <li>Commit and push: <code>git add . && git commit -m "Manual deploy" && git push</code></li>
+    </ol>
+  </div>
+  
+  <script>
+    // Simple check to see if we're on GitHub Pages
+    document.addEventListener('DOMContentLoaded', function() {
+      const isGitHubPages = window.location.hostname.includes('github.io');
+      const statusElement = document.createElement('p');
+      
+      if (isGitHubPages) {
+        statusElement.innerHTML = '<span class="success">✓ This page is being served from GitHub Pages</span>';
+      } else {
+        statusElement.innerHTML = '<span class="error">✗ This page is NOT being served from GitHub Pages</span>';
+      }
+      
+      document.querySelector('.card:nth-child(2)').appendChild(statusElement);
+    });
+  </script>
+</body>
+</html>
