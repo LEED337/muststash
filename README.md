@@ -5,7 +5,7 @@ MustStash helps people save for their wishlist items by automatically rounding u
 ## 🚀 **Live Demo**
 **👉 [Try MustStash Now!](https://leed337.github.io/muststash/)**
 
-*Note: The GitHub Pages deployment should be live within a few minutes after the workflow completes.*
+*The app is now live and ready to explore!*
 
 ## 🎯 MVP Features
 
