@@ -1,6 +1,11 @@
-# MustStash - Spare Change Savings App
+# 💰 MustStash - Spare Change Savings App
 
 MustStash helps people save for their wishlist items by automatically rounding up purchases and collecting spare change, similar to apps like Acorns.
+
+## 🚀 **Live Demo**
+**👉 [Try MustStash Now!](https://leed337.github.io/muststash/)**
+
+*Note: The GitHub Pages deployment should be live within a few minutes after the workflow completes.*
 
 ## 🎯 MVP Features
 
@@ -53,15 +58,28 @@ MustStash helps people save for their wishlist items by automatically rounding u
 
 ## 🎨 Design System
 
+### Modern UI Features
+- **Beautiful Gradients**: Green and gold gradient themes throughout the app
+- **Glass-morphism Effects**: Semi-transparent overlays with blur effects
+- **Card-Based Design**: Elevated surfaces with proper shadows and rounded corners
+- **Animated Transitions**: Smooth animations between screens and states
+- **Responsive Layout**: Adapts perfectly to different screen sizes
+- **Custom Components**: Specially designed progress indicators and buttons
+
 ### Colors
 - Primary Green: `#2E7D32`
 - Light Green: `#4CAF50`
 - Accent Gold: `#FFB300`
 - Background Light: `#F8F9FA`
+- Gradient Combinations:
+  - Primary Gradient: Green tones from dark to light
+  - Gold Gradient: Gold to amber for accent elements
 
 ### Typography
 - Google Fonts (Inter) for clean, modern text
 - Consistent sizing and weight hierarchy
+- Enhanced text contrast for better readability
+- Proper spacing between text elements
 
 ## 🔮 Future Features (Post-MVP)
 
