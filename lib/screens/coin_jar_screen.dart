@@ -563,30 +563,7 @@ class _CoinJarScreenState extends State<CoinJarScreen> with TickerProviderStateM
     }
   }
 
-  IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'food & dining':
-      case 'food':
-        return Icons.restaurant;
-      case 'coffee':
-        return Icons.local_cafe;
-      case 'fast food':
-        return Icons.fastfood;
-      case 'shopping':
-        return Icons.shopping_bag;
-      case 'groceries':
-        return Icons.local_grocery_store;
-      case 'gas & fuel':
-      case 'gas':
-        return Icons.local_gas_station;
-      case 'entertainment':
-        return Icons.movie;
-      case 'transportation':
-        return Icons.directions_car;
-      default:
-        return Icons.receipt;
-    }
-  }
+
 
   Widget _buildTabBar() {
     return Container(

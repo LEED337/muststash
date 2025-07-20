@@ -154,6 +154,7 @@ class _RewardsScreenState extends State<RewardsScreen> {
 
   Widget _buildRewardCard(BuildContext context, dynamic item, double progress, bool canAfford, int index, RewardsProvider rewards, CoinJarProvider coinJar, {required Key key}) {
     return Container(
+      key: key,
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,

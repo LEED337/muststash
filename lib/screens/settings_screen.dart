@@ -185,7 +185,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context, coinJar, child) {
         return _buildSection(
           'Savings Goals',
-          Icons.target,
+          Icons.track_changes,
           [
             _buildSettingsTile(
               'Weekly Goal',
@@ -583,7 +583,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ElevatedButton(
             onPressed: () async {
               await context.read<AppState>().resetApp();
-              await context.read<CoinJarProvider>().clearFilters();
+              context.read<CoinJarProvider>().clearFilters();
               if (mounted) {
                 Navigator.of(context).pop();
                 context.go('/onboarding');
