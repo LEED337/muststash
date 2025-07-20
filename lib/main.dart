@@ -12,9 +12,12 @@ import 'screens/home_screen.dart';
 import 'screens/coin_jar_screen.dart';
 import 'screens/wish_stash_screen.dart';
 import 'screens/add_wish_screen.dart';
+import 'services/storage_service.dart';
 import 'utils/theme.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await StorageService.init();
   runApp(const MustStashApp());
 }
 

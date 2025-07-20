@@ -243,7 +243,7 @@ class _AddWishScreenState extends State<AddWishScreen> {
     );
   }
 
-  void _saveWish() {
+  void _saveWish() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -254,32 +254,58 @@ class _AddWishScreenState extends State<AddWishScreen> {
     final url = _urlController.text.trim();
 
     final wishStash = context.read<WishStashProvider>();
-    final newPriority = wishStash.wishItems.length + 1;
 
-    final wishItem = WishItem(
-      id: const Uuid().v4(),
-      name: name,
-      description: description.isEmpty ? 'No description provided' : description,
-      targetPrice: price,
-      imageUrl: 'https://via.placeholder.com/300x300?text=${Uri.encodeComponent(name)}',
-      category: _selectedCategory,
-      priority: newPriority,
-      createdAt: DateTime.now(),
-      productUrl: url.isEmpty ? null : url,
-    );
-
-    wishStash.addWishItem(wishItem);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$name added to your rewards!'),
-        action: SnackBarAction(
-          label: 'View',
-          onPressed: () => context.go('/rewards'),
-        ),
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
       ),
     );
 
-    context.go('/rewards');
+    try {
+      await wishStash.addWishItem(
+        name: name,
+        description: description.isEmpty ? 'No description provided' : description,
+        targetPrice: price,
+        category: _selectedCategory,
+        productUrl: url.isEmpty ? null : url,
+      );
+
+      // Hide loading indicator
+      if (mounted) Navigator.of(context).pop();
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$name added to your rewards!'),
+            backgroundColor: AppTheme.primaryGreen,
+            action: SnackBarAction(
+              label: 'View',
+              textColor: Colors.white,
+              onPressed: () => context.go('/rewards'),
+            ),
+          ),
+        );
+
+        // Navigate back to rewards screen
+        context.go('/rewards');
+      }
+    } catch (e) {
+      // Hide loading indicator
+      if (mounted) Navigator.of(context).pop();
+      
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error adding reward: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

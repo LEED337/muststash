@@ -1,57 +1,83 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../services/storage_service.dart';
 
 class AppState extends ChangeNotifier {
   bool _isFirstLaunch = true;
   bool _isOnboardingComplete = false;
   String _userName = '';
   bool _isPremiumUser = false;
+  bool _isLoading = true;
 
   bool get isFirstLaunch => _isFirstLaunch;
   bool get isOnboardingComplete => _isOnboardingComplete;
   String get userName => _userName;
   bool get isPremiumUser => _isPremiumUser;
+  bool get isLoading => _isLoading;
 
   AppState() {
     _loadAppState();
   }
 
   Future<void> _loadAppState() async {
-    final prefs = await SharedPreferences.getInstance();
-    _isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
-    _isOnboardingComplete = prefs.getBool('isOnboardingComplete') ?? false;
-    _userName = prefs.getString('userName') ?? '';
-    _isPremiumUser = prefs.getBool('isPremiumUser') ?? false;
-    notifyListeners();
+    try {
+      _isOnboardingComplete = await StorageService.isOnboardingComplete();
+      _userName = await StorageService.getUserName();
+      _isPremiumUser = await StorageService.isPremiumUser();
+      _isFirstLaunch = !_isOnboardingComplete;
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading app state: $e');
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> completeOnboarding(String name) async {
-    final prefs = await SharedPreferences.getInstance();
-    _isFirstLaunch = false;
-    _isOnboardingComplete = true;
-    _userName = name;
-    
-    await prefs.setBool('isFirstLaunch', false);
-    await prefs.setBool('isOnboardingComplete', true);
-    await prefs.setString('userName', name);
-    
-    notifyListeners();
+    try {
+      _isFirstLaunch = false;
+      _isOnboardingComplete = true;
+      _userName = name;
+      
+      await StorageService.setOnboardingComplete(true);
+      await StorageService.setUserName(name);
+      
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error completing onboarding: $e');
+    }
+  }
+
+  Future<void> setUserName(String name) async {
+    try {
+      _userName = name;
+      await StorageService.setUserName(name);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error setting user name: $e');
+    }
   }
 
   Future<void> upgradeToPremium() async {
-    final prefs = await SharedPreferences.getInstance();
-    _isPremiumUser = true;
-    await prefs.setBool('isPremiumUser', true);
-    notifyListeners();
+    try {
+      _isPremiumUser = true;
+      await StorageService.setPremiumUser(true);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error upgrading to premium: $e');
+    }
   }
 
   Future<void> resetApp() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    _isFirstLaunch = true;
-    _isOnboardingComplete = false;
-    _userName = '';
-    _isPremiumUser = false;
-    notifyListeners();
+    try {
+      await StorageService.clearAllData();
+      _isFirstLaunch = true;
+      _isOnboardingComplete = false;
+      _userName = '';
+      _isPremiumUser = false;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error resetting app: $e');
+    }
   }
 }
