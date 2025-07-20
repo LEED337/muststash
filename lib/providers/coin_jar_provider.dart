@@ -9,11 +9,55 @@ class CoinJarProvider extends ChangeNotifier {
   List<Transaction> _transactions = [];
   double _weeklyGoal = 25.0;
   bool _isLoading = true;
+  
+  // Filtering and search
+  String _searchQuery = '';
+  String _selectedCategory = 'All';
+  DateTime? _startDate;
+  DateTime? _endDate;
 
   double get totalSavings => _totalSavings;
-  List<Transaction> get transactions => List.unmodifiable(_transactions);
+  List<Transaction> get transactions => List.unmodifiable(_filteredTransactions);
+  List<Transaction> get allTransactions => List.unmodifiable(_transactions);
   double get weeklyGoal => _weeklyGoal;
   bool get isLoading => _isLoading;
+  String get searchQuery => _searchQuery;
+  String get selectedCategory => _selectedCategory;
+  DateTime? get startDate => _startDate;
+  DateTime? get endDate => _endDate;
+
+  List<Transaction> get _filteredTransactions {
+    List<Transaction> filtered = List.from(_transactions);
+
+    // Apply search filter
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered.where((transaction) {
+        return transaction.merchantName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+               transaction.category.toLowerCase().contains(_searchQuery.toLowerCase());
+      }).toList();
+    }
+
+    // Apply category filter
+    if (_selectedCategory != 'All') {
+      filtered = filtered.where((transaction) => transaction.category == _selectedCategory).toList();
+    }
+
+    // Apply date range filter
+    if (_startDate != null) {
+      filtered = filtered.where((transaction) => transaction.timestamp.isAfter(_startDate!)).toList();
+    }
+    if (_endDate != null) {
+      filtered = filtered.where((transaction) => transaction.timestamp.isBefore(_endDate!.add(const Duration(days: 1)))).toList();
+    }
+
+    return filtered;
+  }
+
+  List<String> get availableCategories {
+    final categories = _transactions.map((t) => t.category).toSet().toList();
+    categories.sort();
+    return ['All', ...categories];
+  }
   
   double get weeklyProgress {
     final now = DateTime.now();
@@ -133,6 +177,47 @@ class CoinJarProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error adding spare change: $e');
     }
+  }
+
+  // Filtering and search methods
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
+  void setSelectedCategory(String category) {
+    _selectedCategory = category;
+    notifyListeners();
+  }
+
+  void setDateRange(DateTime? start, DateTime? end) {
+    _startDate = start;
+    _endDate = end;
+    notifyListeners();
+  }
+
+  void clearFilters() {
+    _searchQuery = '';
+    _selectedCategory = 'All';
+    _startDate = null;
+    _endDate = null;
+    notifyListeners();
+  }
+
+  // Analytics methods
+  Map<String, double> getCategoryBreakdown() {
+    final breakdown = <String, double>{};
+    for (final transaction in _transactions) {
+      breakdown[transaction.category] = (breakdown[transaction.category] ?? 0) + transaction.spareChange;
+    }
+    return breakdown;
+  }
+
+  List<Transaction> getTransactionsByDateRange(DateTime start, DateTime end) {
+    return _transactions.where((t) => 
+      t.timestamp.isAfter(start) && 
+      t.timestamp.isBefore(end.add(const Duration(days: 1)))
+    ).toList();
   }
 
   // Mock data generator for demo purposes

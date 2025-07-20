@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/wish_stash_provider.dart';
+import '../providers/rewards_provider.dart';
 import '../providers/coin_jar_provider.dart';
 import '../utils/formatters.dart';
 import '../utils/theme.dart';
 import '../widgets/mustache_logo.dart';
 
 
-class WishStashScreen extends StatelessWidget {
-  const WishStashScreen({super.key});
+class RewardsScreen extends StatefulWidget {
+  const RewardsScreen({super.key});
+
+  @override
+  State<RewardsScreen> createState() => _RewardsScreenState();
+}
+
+class _RewardsScreenState extends State<RewardsScreen> {
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +37,9 @@ class WishStashScreen extends StatelessWidget {
                       topRight: Radius.circular(24),
                     ),
                   ),
-                  child: Consumer2<WishStashProvider, CoinJarProvider>(
-                    builder: (context, wishStash, coinJar, child) {
-                      if (wishStash.wishItems.isEmpty) {
+                  child: Consumer2<RewardsProvider, CoinJarProvider>(
+                    builder: (context, rewards, coinJar, child) {
+                      if (rewards.wishItems.isEmpty) {
                         return _buildEmptyState(context);
                       }
 
@@ -50,15 +56,18 @@ class WishStashScreen extends StatelessWidget {
                             ),
                           ),
                           Expanded(
-                            child: ListView.builder(
+                            child: ReorderableListView.builder(
                               padding: const EdgeInsets.symmetric(horizontal: 20),
-                              itemCount: wishStash.sortedWishItems.length,
+                              itemCount: rewards.sortedWishItems.length,
+                              onReorder: (oldIndex, newIndex) {
+                                rewards.reorderWishItems(oldIndex, newIndex);
+                              },
                               itemBuilder: (context, index) {
-                                final item = wishStash.sortedWishItems[index];
-                                final progress = wishStash.getProgressForItem(item.id, coinJar.totalSavings);
+                                final item = rewards.sortedWishItems[index];
+                                final progress = rewards.getProgressForItem(item.id, coinJar.totalSavings);
                                 final canAfford = coinJar.totalSavings >= item.targetPrice;
 
-                                return _buildRewardCard(context, item, progress, canAfford, index, wishStash, coinJar);
+                                return _buildRewardCard(context, item, progress, canAfford, index, rewards, coinJar, key: ValueKey(item.id));
                               },
                             ),
                           ),
@@ -143,7 +152,7 @@ class WishStashScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRewardCard(BuildContext context, dynamic item, double progress, bool canAfford, int index, WishStashProvider wishStash, CoinJarProvider coinJar) {
+  Widget _buildRewardCard(BuildContext context, dynamic item, double progress, bool canAfford, int index, RewardsProvider rewards, CoinJarProvider coinJar, {required Key key}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -313,7 +322,7 @@ class WishStashScreen extends StatelessWidget {
                     ],
                     onSelected: (value) {
                       if (value == 'delete') {
-                        _showDeleteDialog(context, wishStash, item.id, item.name);
+                        _showDeleteDialog(context, rewards, item.id, item.name);
                       }
                     },
                   ),
@@ -545,7 +554,7 @@ class WishStashScreen extends StatelessWidget {
     );
   }
 
-  void _showDeleteDialog(BuildContext context, WishStashProvider wishStash, String itemId, String itemName) {
+  void _showDeleteDialog(BuildContext context, RewardsProvider rewards, String itemId, String itemName) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -558,10 +567,10 @@ class WishStashScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              wishStash.deleteWishItem(itemId);
+              rewards.deleteWishItem(itemId);
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$itemName removed from wish stash')),
+                SnackBar(content: Text('$itemName removed from rewards')),
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),

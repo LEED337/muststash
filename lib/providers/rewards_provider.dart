@@ -3,7 +3,7 @@ import 'package:uuid/uuid.dart';
 import '../models/wish_item.dart';
 import '../services/storage_service.dart';
 
-class WishStashProvider extends ChangeNotifier {
+class RewardsProvider extends ChangeNotifier {
   List<WishItem> _wishItems = [];
   bool _isLoading = true;
   
@@ -24,7 +24,7 @@ class WishStashProvider extends ChangeNotifier {
     return _wishItems.where((item) => item.isCompleted).toList();
   }
 
-  WishStashProvider() {
+  RewardsProvider() {
     _loadData();
   }
 

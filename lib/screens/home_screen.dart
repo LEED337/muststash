@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/app_state.dart';
 import '../providers/coin_jar_provider.dart';
-import '../providers/wish_stash_provider.dart';
+import '../providers/rewards_provider.dart';
 import '../utils/formatters.dart';
 import '../utils/theme.dart';
 import '../widgets/mustache_logo.dart';
@@ -148,6 +148,17 @@ class HomeScreen extends StatelessWidget {
                 ),
               );
             },
+          ),
+          const SizedBox(width: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.settings, color: Colors.white),
+              onPressed: () => context.go('/settings'),
+            ),
           ),
         ],
       ),
@@ -408,10 +419,10 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildTopWishItem() {
-    return Consumer2<WishStashProvider, CoinJarProvider>(
-      builder: (context, wishStash, coinJar, child) {
-        final topItem = wishStash.sortedWishItems.isNotEmpty
-            ? wishStash.sortedWishItems.first
+    return Consumer2<RewardsProvider, CoinJarProvider>(
+      builder: (context, rewards, coinJar, child) {
+        final topItem = rewards.sortedWishItems.isNotEmpty
+            ? rewards.sortedWishItems.first
             : null;
 
         return Column(
@@ -501,15 +512,15 @@ class HomeScreen extends StatelessWidget {
                 ),
               )
             else
-              _buildRewardCard(context, topItem, wishStash, coinJar),
+              _buildRewardCard(context, topItem, rewards, coinJar),
           ],
         );
       },
     );
   }
 
-  Widget _buildRewardCard(BuildContext context, dynamic topItem, WishStashProvider wishStash, CoinJarProvider coinJar) {
-    final progress = wishStash.getProgressForItem(topItem.id, coinJar.totalSavings);
+  Widget _buildRewardCard(BuildContext context, dynamic topItem, RewardsProvider rewards, CoinJarProvider coinJar) {
+    final progress = rewards.getProgressForItem(topItem.id, coinJar.totalSavings);
     final canAfford = coinJar.totalSavings >= topItem.targetPrice;
 
     return Container(

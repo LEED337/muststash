@@ -5,13 +5,14 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'providers/app_state.dart';
 import 'providers/coin_jar_provider.dart';
-import 'providers/wish_stash_provider.dart';
+import 'providers/rewards_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/coin_jar_screen.dart';
-import 'screens/wish_stash_screen.dart';
-import 'screens/add_wish_screen.dart';
+import 'screens/rewards_screen.dart';
+import 'screens/add_reward_screen.dart';
+import 'screens/settings_screen.dart';
 import 'services/storage_service.dart';
 import 'utils/theme.dart';
 
@@ -30,7 +31,7 @@ class MustStashApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AppState()),
         ChangeNotifierProvider(create: (_) => CoinJarProvider()),
-        ChangeNotifierProvider(create: (_) => WishStashProvider()),
+        ChangeNotifierProvider(create: (_) => RewardsProvider()),
       ],
       child: MaterialApp.router(
         title: 'MustStash',
@@ -64,11 +65,15 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/rewards',
-      builder: (context, state) => const WishStashScreen(),
+      builder: (context, state) => const RewardsScreen(),
     ),
     GoRoute(
       path: '/add-reward',
-      builder: (context, state) => const AddWishScreen(),
+      builder: (context, state) => const AddRewardScreen(),
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsScreen(),
     ),
   ],
 );

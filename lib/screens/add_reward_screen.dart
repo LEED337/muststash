@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
-import '../providers/wish_stash_provider.dart';
+import '../providers/rewards_provider.dart';
 import '../models/wish_item.dart';
 import '../utils/theme.dart';
 import '../widgets/mustache_logo.dart';
 
 
-class AddWishScreen extends StatefulWidget {
-  const AddWishScreen({super.key});
+class AddRewardScreen extends StatefulWidget {
+  const AddRewardScreen({super.key});
 
   @override
-  State<AddWishScreen> createState() => _AddWishScreenState();
+  State<AddRewardScreen> createState() => _AddRewardScreenState();
 }
 
-class _AddWishScreenState extends State<AddWishScreen> {
+class _AddRewardScreenState extends State<AddRewardScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -253,7 +253,7 @@ class _AddWishScreenState extends State<AddWishScreen> {
     final price = double.parse(_priceController.text.trim());
     final url = _urlController.text.trim();
 
-    final wishStash = context.read<WishStashProvider>();
+    final rewards = context.read<RewardsProvider>();
 
     // Show loading indicator
     showDialog(
@@ -265,7 +265,7 @@ class _AddWishScreenState extends State<AddWishScreen> {
     );
 
     try {
-      await wishStash.addWishItem(
+      await rewards.addWishItem(
         name: name,
         description: description.isEmpty ? 'No description provided' : description,
         targetPrice: price,

@@ -129,17 +129,113 @@ class StorageService {
     await _prefs?.clear();
   }
 
-  static Future<void> exportData() async {
+  static Future<Map<String, dynamic>> exportData() async {
     final Map<String, dynamic> allData = {
-      'wishItems': await getWishItems(),
-      'transactions': await getTransactions(),
-      'userName': await getUserName(),
-      'totalSavings': await getTotalSavings(),
-      'weeklyGoal': await getWeeklyGoal(),
-      'isPremium': await isPremiumUser(),
+      'version': '1.0.0',
+      'exportDate': DateTime.now().toIso8601String(),
+      'userData': {
+        'userName': await getUserName(),
+        'isOnboardingComplete': await isOnboardingComplete(),
+        'isPremium': await isPremiumUser(),
+      },
+      'savingsData': {
+        'totalSavings': await getTotalSavings(),
+        'weeklyGoal': await getWeeklyGoal(),
+      },
+      'wishItems': (await getWishItems()).map((item) => item.toJson()).toList(),
+      'transactions': (await getTransactions()).map((transaction) => transaction.toJson()).toList(),
     };
     
-    // This could be extended to save to file or share
-    print('Export Data: ${json.encode(allData)}');
+    // For web, we'll log to console. In a real app, this would save to file
+    print('=== MustStash Data Export ===');
+    print(const JsonEncoder.withIndent('  ').convert(allData));
+    print('=== End Export ===');
+    
+    return allData;
+  }
+
+  static Future<bool> importData(Map<String, dynamic> data) async {
+    try {
+      // Validate data structure
+      if (!data.containsKey('version') || !data.containsKey('userData')) {
+        throw Exception('Invalid data format');
+      }
+
+      // Clear existing data
+      await clearAllData();
+
+      // Import user data
+      final userData = data['userData'] as Map<String, dynamic>;
+      await setUserName(userData['userName'] ?? 'User');
+      await setOnboardingComplete(userData['isOnboardingComplete'] ?? false);
+      await setPremiumUser(userData['isPremium'] ?? false);
+
+      // Import savings data
+      if (data.containsKey('savingsData')) {
+        final savingsData = data['savingsData'] as Map<String, dynamic>;
+        await setTotalSavings(savingsData['totalSavings']?.toDouble() ?? 0.0);
+        await setWeeklyGoal(savingsData['weeklyGoal']?.toDouble() ?? 25.0);
+      }
+
+      // Import wish items
+      if (data.containsKey('wishItems')) {
+        final wishItemsData = data['wishItems'] as List<dynamic>;
+        final wishItems = wishItemsData.map((item) => WishItem.fromJson(item)).toList();
+        await saveWishItems(wishItems);
+      }
+
+      // Import transactions
+      if (data.containsKey('transactions')) {
+        final transactionsData = data['transactions'] as List<dynamic>;
+        final transactions = transactionsData.map((item) => Transaction.fromJson(item)).toList();
+        await saveTransactions(transactions);
+      }
+
+      return true;
+    } catch (e) {
+      print('Error importing data: $e');
+      return false;
+    }
+  }
+
+  static Future<Map<String, dynamic>> getAppStatistics() async {
+    final transactions = await getTransactions();
+    final wishItems = await getWishItems();
+    final totalSavings = await getTotalSavings();
+
+    // Calculate statistics
+    final now = DateTime.now();
+    final thisWeek = now.subtract(Duration(days: now.weekday - 1));
+    final thisMonth = DateTime(now.year, now.month, 1);
+    
+    final weeklyTransactions = transactions.where((t) => t.timestamp.isAfter(thisWeek)).toList();
+    final monthlyTransactions = transactions.where((t) => t.timestamp.isAfter(thisMonth)).toList();
+    
+    final weeklyTotal = weeklyTransactions.fold(0.0, (sum, t) => sum + t.spareChange);
+    final monthlyTotal = monthlyTransactions.fold(0.0, (sum, t) => sum + t.spareChange);
+    
+    // Category breakdown
+    final categoryBreakdown = <String, double>{};
+    for (final transaction in transactions) {
+      categoryBreakdown[transaction.category] = 
+          (categoryBreakdown[transaction.category] ?? 0) + transaction.spareChange;
+    }
+
+    return {
+      'totalSavings': totalSavings,
+      'totalTransactions': transactions.length,
+      'totalWishItems': wishItems.length,
+      'completedWishItems': wishItems.where((item) => item.isCompleted).length,
+      'weeklyTotal': weeklyTotal,
+      'monthlyTotal': monthlyTotal,
+      'averageTransaction': transactions.isNotEmpty ? totalSavings / transactions.length : 0.0,
+      'categoryBreakdown': categoryBreakdown,
+      'oldestTransaction': transactions.isNotEmpty 
+          ? transactions.map((t) => t.timestamp).reduce((a, b) => a.isBefore(b) ? a : b).toIso8601String()
+          : null,
+      'newestTransaction': transactions.isNotEmpty 
+          ? transactions.map((t) => t.timestamp).reduce((a, b) => a.isAfter(b) ? a : b).toIso8601String()
+          : null,
+    };
   }
 }
