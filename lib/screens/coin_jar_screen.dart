@@ -5,6 +5,7 @@ import '../providers/coin_jar_provider.dart';
 import '../utils/formatters.dart';
 import '../utils/theme.dart';
 import '../widgets/mustache_logo.dart';
+import '../widgets/add_transaction_dialog.dart';
 
 
 class CoinJarScreen extends StatelessWidget {
@@ -45,6 +46,29 @@ class CoinJarScreen extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          gradient: AppTheme.primaryGradient,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryGreen.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: () => _showAddTransactionDialog(context),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          icon: const Icon(Icons.add_rounded),
+          label: const Text(
+            'Add Purchase',
+            style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
       ),
@@ -504,5 +528,12 @@ class CoinJarScreen extends StatelessWidget {
       default:
         return Colors.grey;
     }
+  }
+
+  void _showAddTransactionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const AddTransactionDialog(),
+    );
   }
 }
