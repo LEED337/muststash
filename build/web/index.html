@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="/muststash/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="MustStash - Save spare change for your dreams">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="MustStash">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>MustStash</title>
+  <link rel="manifest" href="manifest.json">
+
+  <script>
+    // The value below is injected by flutter build, do not touch.
+    const serviceWorkerVersion = "3993005529";
+  </script>
+  <!-- This script adds the flutter initialization JS code -->
+  <script src="flutter.js" defer></script>
+  
+  <!-- Fix for GitHub Pages 404 issue with Flutter routing -->
+  <script>
+    window.addEventListener('load', function() {
+      // When running on GitHub Pages, we need to handle 404s for Flutter routing
+      // by redirecting to index.html
+      if (window.location.pathname.indexOf('/muststash/') === 0 && 
+          window.location.pathname !== '/muststash/' && 
+          window.location.pathname !== '/muststash/index.html') {
+        
+        // Store the current path to restore after navigation
+        const path = window.location.pathname.replace('/muststash/', '');
+        
+        // Redirect to index.html
+        window.history.replaceState(null, null, '/muststash/');
+        
+        // Wait for Flutter to initialize and then navigate to the original path
+        window.addEventListener('flutterInAppWebViewPlatformReady', function() {
+          // This event might not be the right one for your Flutter app
+          // You might need to use a custom event or another approach
+          setTimeout(function() {
+            // Attempt to navigate to the original path
+            // This depends on your Flutter routing setup
+            window.flutter_inappwebview.callHandler('navigate', path);
+          }, 1000);
+        });
+      }
+    });
+  </script>
+</head>
+<body>
+  <script>
+    window.addEventListener('load', function(ev) {
+      // Download main.dart.js
+      _flutter.loader.loadEntrypoint({
+        serviceWorker: {
+          serviceWorkerVersion: serviceWorkerVersion,
+        },
+        onEntrypointLoaded: function(engineInitializer) {
+          engineInitializer.initializeEngine().then(function(appRunner) {
+            appRunner.runApp();
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
