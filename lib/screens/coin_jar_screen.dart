@@ -610,24 +610,44 @@ class _CoinJarScreenState extends State<CoinJarScreen> with TickerProviderStateM
           // Search bar
           TextField(
             controller: _searchController,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
+            ),
             decoration: InputDecoration(
               hintText: 'Search transactions...',
-              prefixIcon: const Icon(Icons.search),
+              hintStyle: TextStyle(
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w400,
+              ),
+              prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.clear),
+                      icon: Icon(Icons.clear, color: Colors.grey[600]),
                       onPressed: () {
                         _searchController.clear();
                         coinJar.setSearchQuery('');
                       },
                     )
                   : null,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+                borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppTheme.primaryGreen, width: 2),
               ),
               filled: true,
-              fillColor: Colors.grey[100],
+              fillColor: Colors.white,
             ),
             onChanged: (value) => coinJar.setSearchQuery(value),
           ),
@@ -638,19 +658,46 @@ class _CoinJarScreenState extends State<CoinJarScreen> with TickerProviderStateM
               Expanded(
                 child: DropdownButtonFormField<String>(
                   value: coinJar.selectedCategory,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w500,
+                  ),
                   decoration: InputDecoration(
                     labelText: 'Category',
+                    labelStyle: TextStyle(
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.w500,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                      borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppTheme.primaryGreen, width: 2),
                     ),
                     filled: true,
-                    fillColor: Colors.grey[100],
+                    fillColor: Colors.white,
                   ),
+                  dropdownColor: Colors.white,
                   items: coinJar.availableCategories.map((category) {
                     return DropdownMenuItem(
                       value: category,
-                      child: Text(category),
+                      child: Text(
+                        category,
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     );
                   }).toList(),
                   onChanged: (value) => coinJar.setSelectedCategory(value!),
