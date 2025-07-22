@@ -1,9 +1,4 @@
 import 'package:flutter/material.dart';
-import 'screens/ads_screen_optisigns.dart';
-import 'screens/analytics_dashboard.dart';
-import 'screens/real_time_monitoring.dart';
-import 'screens/locations_screen_optisigns.dart';
-import 'services/optisigns_service.dart';
 
 void main() {
   runApp(const AdNabbitApp());
@@ -165,10 +160,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   final List<Widget> _screens = [
     const DashboardHomeScreen(),
-    const LocationsScreenOptiSigns(),
-    const AdsScreenOptiSigns(),
-    const AnalyticsDashboard(),
-    const RealTimeMonitoring(),
+    const LocationsScreen(),
+    const AdsScreen(),
     const SubscriptionScreen(),
   ];
 
@@ -265,11 +258,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: ListView(
                     children: [
                       _buildNavItem(Icons.dashboard, 'Dashboard', 0),
-                      _buildNavItem(Icons.location_on, 'OptiSigns Screens', 1),
+                      _buildNavItem(Icons.location_on, 'Locations', 1),
                       _buildNavItem(Icons.campaign, 'My Ads', 2),
-                      _buildNavItem(Icons.analytics, 'Analytics', 3),
-                      _buildNavItem(Icons.monitor, 'Live Monitor', 4),
-                      _buildNavItem(Icons.subscriptions, 'Subscription', 5),
+                      _buildNavItem(Icons.subscriptions, 'Subscription', 3),
                     ],
                   ),
                 ),
@@ -491,17 +482,15 @@ class LocationsScreen extends StatefulWidget {
 }
 
 class _LocationsScreenState extends State<LocationsScreen> {
-  final OptiSignsService _optiSignsService = OptiSignsService();
-  List<Map<String, dynamic>> _screens = [];
-  List<Map<String, dynamic>> _filteredScreens = [];
+  List<Map<String, dynamic>> _locations = [];
+  List<Map<String, dynamic>> _filteredLocations = [];
   bool _isLoading = true;
-  bool _connectionError = false;
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _loadOptiSignsScreens();
+    _loadLocations();
   }
 
   @override
@@ -510,113 +499,94 @@ class _LocationsScreenState extends State<LocationsScreen> {
     super.dispose();
   }
 
-  Future<void> _loadOptiSignsScreens() async {
+  Future<void> _loadLocations() async {
     setState(() {
       _isLoading = true;
-      _connectionError = false;
     });
 
-    try {
-      // Load screens directly from OptiSigns
-      final screens = await _optiSignsService.getAvailableScreens();
-      
-      // Transform OptiSigns screen data to match our UI format
-      final transformedScreens = screens.map((screen) {
-        return {
-          'id': screen['id'],
-          'businessName': screen['name'],
-          'address': _extractAddress(screen['location']),
-          'city': _extractCity(screen['location']),
-          'state': _extractState(screen['location']),
-          'zipCode': '',
-          'businessType': _getBusinessType(screen['name']),
-          'estimatedDailyViews': screen['dailyViews'],
-          'pricePerDay': screen['pricePerDay'],
-          'isAvailable': screen['isAvailable'] && screen['status'] == 'online',
-          'status': screen['status'],
-          'resolution': screen['resolution'],
-          'orientation': screen['orientation'],
-          'lastSeen': screen['lastSeen'],
-          'optiSignsId': screen['id'], // Keep original OptiSigns ID
-        };
-      }).toList();
+    // Simulate loading delay
+    await Future.delayed(const Duration(milliseconds: 500));
 
-      setState(() {
-        _screens = transformedScreens;
-        _filteredScreens = transformedScreens;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _connectionError = true;
-      });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error, color: Colors.white),
-              const SizedBox(width: 8),
-              Expanded(child: Text('Failed to load OptiSigns screens: $e')),
-            ],
-          ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          action: SnackBarAction(
-            label: 'Retry',
-            textColor: Colors.white,
-            onPressed: _loadOptiSignsScreens,
-          ),
-        ),
-      );
-    }
+    // Mock location data
+    final locations = [
+      {
+        'id': '1',
+        'businessName': 'Downtown Coffee Shop',
+        'address': '123 Main St',
+        'city': 'New York',
+        'state': 'NY',
+        'zipCode': '10001',
+        'businessType': 'Coffee Shop',
+        'estimatedDailyViews': 500,
+        'pricePerDay': 25.00,
+        'isAvailable': true,
+      },
+      {
+        'id': '2',
+        'businessName': 'Metro Fitness Center',
+        'address': '456 Broadway Ave',
+        'city': 'New York',
+        'state': 'NY',
+        'zipCode': '10002',
+        'businessType': 'Fitness Center',
+        'estimatedDailyViews': 800,
+        'pricePerDay': 45.00,
+        'isAvailable': true,
+      },
+      {
+        'id': '3',
+        'businessName': 'City Mall Food Court',
+        'address': '789 Shopping Blvd',
+        'city': 'Los Angeles',
+        'state': 'CA',
+        'zipCode': '90210',
+        'businessType': 'Shopping Mall',
+        'estimatedDailyViews': 1200,
+        'pricePerDay': 75.00,
+        'isAvailable': false,
+      },
+      {
+        'id': '4',
+        'businessName': 'University Student Center',
+        'address': '321 College Way',
+        'city': 'Austin',
+        'state': 'TX',
+        'zipCode': '78701',
+        'businessType': 'University',
+        'estimatedDailyViews': 600,
+        'pricePerDay': 35.00,
+        'isAvailable': true,
+      },
+      {
+        'id': '5',
+        'businessName': 'Airport Terminal B',
+        'address': '100 Airport Rd',
+        'city': 'Miami',
+        'state': 'FL',
+        'zipCode': '33126',
+        'businessType': 'Airport',
+        'estimatedDailyViews': 2000,
+        'pricePerDay': 120.00,
+        'isAvailable': true,
+      },
+    ];
+
+    setState(() {
+      _locations = locations;
+      _filteredLocations = locations;
+      _isLoading = false;
+    });
   }
 
-  String _extractAddress(String location) {
-    // Extract address from location string (simplified)
-    final parts = location.split(',');
-    return parts.isNotEmpty ? parts[0].trim() : 'Address not available';
-  }
-
-  String _extractCity(String location) {
-    final parts = location.split(',');
-    return parts.length > 1 ? parts[1].trim() : 'Unknown City';
-  }
-
-  String _extractState(String location) {
-    final parts = location.split(',');
-    if (parts.length > 1) {
-      final cityState = parts[1].trim();
-      final stateParts = cityState.split(' ');
-      return stateParts.length > 1 ? stateParts.last : 'Unknown';
-    }
-    return 'Unknown';
-  }
-
-  String _getBusinessType(String screenName) {
-    // Infer business type from screen name
-    final name = screenName.toLowerCase();
-    if (name.contains('coffee')) return 'Coffee Shop';
-    if (name.contains('fitness') || name.contains('gym')) return 'Fitness Center';
-    if (name.contains('mall') || name.contains('shopping')) return 'Shopping Mall';
-    if (name.contains('university') || name.contains('college')) return 'University';
-    if (name.contains('airport')) return 'Airport';
-    if (name.contains('restaurant') || name.contains('food')) return 'Restaurant';
-    if (name.contains('hotel')) return 'Hotel';
-    if (name.contains('retail') || name.contains('store')) return 'Retail Store';
-    return 'Business Location';
-  }
-
-  void _filterScreens(String query) {
+  void _filterLocations(String query) {
     setState(() {
       if (query.isEmpty) {
-        _filteredScreens = _screens;
+        _filteredLocations = _locations;
       } else {
-        _filteredScreens = _screens.where((screen) {
-          return screen['businessName'].toLowerCase().contains(query.toLowerCase()) ||
-                 screen['city'].toLowerCase().contains(query.toLowerCase()) ||
-                 screen['businessType'].toLowerCase().contains(query.toLowerCase());
+        _filteredLocations = _locations.where((location) {
+          return location['businessName'].toLowerCase().contains(query.toLowerCase()) ||
+                 location['city'].toLowerCase().contains(query.toLowerCase()) ||
+                 location['businessType'].toLowerCase().contains(query.toLowerCase());
         }).toList();
       }
     });
@@ -665,7 +635,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
               ),
               child: TextField(
                 controller: _searchController,
-                onChanged: _filterScreens,
+                onChanged: _filterLocations,
                 decoration: const InputDecoration(
                   hintText: 'Search locations, cities, or business types...',
                   prefixIcon: Icon(Icons.search, color: Colors.grey),
@@ -684,7 +654,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
                         color: Color(0xFF1E3A8A),
                       ),
                     )
-                  : _filteredScreens.isEmpty
+                  : _filteredLocations.isEmpty
                       ? const Center(
                           child: Text(
                             'No locations found',
@@ -701,9 +671,9 @@ class _LocationsScreenState extends State<LocationsScreen> {
                             mainAxisSpacing: 16,
                             childAspectRatio: 1.2,
                           ),
-                          itemCount: _filteredScreens.length,
+                          itemCount: _filteredLocations.length,
                           itemBuilder: (context, index) {
-                            final location = _filteredScreens[index];
+                            final location = _filteredLocations[index];
                             return _buildLocationCard(location);
                           },
                         ),

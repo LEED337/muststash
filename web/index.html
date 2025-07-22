@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <base href="$FLUTTER_BASE_HREF">
 
@@ -14,7 +15,7 @@
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png" />
 
   <title>MustStash</title>
   <link rel="manifest" href="manifest.json">
@@ -25,27 +26,27 @@
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
-  
+
   <!-- Fix for GitHub Pages 404 issue with Flutter routing -->
   <script>
-    window.addEventListener('load', function() {
+    window.addEventListener('load', function () {
       // When running on GitHub Pages, we need to handle 404s for Flutter routing
       // by redirecting to index.html
-      if (window.location.pathname.indexOf('/muststash/') === 0 && 
-          window.location.pathname !== '/muststash/' && 
-          window.location.pathname !== '/muststash/index.html') {
-        
+      if (window.location.pathname.indexOf('/muststash/') === 0 &&
+        window.location.pathname !== '/muststash/' &&
+        window.location.pathname !== '/muststash/index.html') {
+
         // Store the current path to restore after navigation
         const path = window.location.pathname.replace('/muststash/', '');
-        
+
         // Redirect to index.html
         window.history.replaceState(null, null, '/muststash/');
-        
+
         // Wait for Flutter to initialize and then navigate to the original path
-        window.addEventListener('flutterInAppWebViewPlatformReady', function() {
+        window.addEventListener('flutterInAppWebViewPlatformReady', function () {
           // This event might not be the right one for your Flutter app
           // You might need to use a custom event or another approach
-          setTimeout(function() {
+          setTimeout(function () {
             // Attempt to navigate to the original path
             // This depends on your Flutter routing setup
             window.flutter_inappwebview.callHandler('navigate', path);
@@ -55,16 +56,17 @@
     });
   </script>
 </head>
+
 <body>
   <script>
-    window.addEventListener('load', function(ev) {
+    window.addEventListener('load', function (ev) {
       // Download main.dart.js
       _flutter.loader.loadEntrypoint({
         serviceWorker: {
           serviceWorkerVersion: serviceWorkerVersion,
         },
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine().then(function(appRunner) {
+        onEntrypointLoaded: function (engineInitializer) {
+          engineInitializer.initializeEngine().then(function (appRunner) {
             appRunner.runApp();
           });
         }
@@ -72,4 +74,5 @@
     });
   </script>
 </body>
+
 </html>

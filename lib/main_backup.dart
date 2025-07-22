@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/ads_screen_optisigns.dart';
-import 'screens/analytics_dashboard.dart';
-import 'screens/real_time_monitoring.dart';
-import 'screens/locations_screen_optisigns.dart';
-import 'services/optisigns_service.dart';
+import 'screens/ads_screen_enhanced.dart';
 
 void main() {
   runApp(const AdNabbitApp());
@@ -165,10 +161,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   final List<Widget> _screens = [
     const DashboardHomeScreen(),
-    const LocationsScreenOptiSigns(),
-    const AdsScreenOptiSigns(),
-    const AnalyticsDashboard(),
-    const RealTimeMonitoring(),
+    const LocationsScreen(),
+    const AdsScreen(),
     const SubscriptionScreen(),
   ];
 
@@ -265,11 +259,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: ListView(
                     children: [
                       _buildNavItem(Icons.dashboard, 'Dashboard', 0),
-                      _buildNavItem(Icons.location_on, 'OptiSigns Screens', 1),
+                      _buildNavItem(Icons.location_on, 'Locations', 1),
                       _buildNavItem(Icons.campaign, 'My Ads', 2),
-                      _buildNavItem(Icons.analytics, 'Analytics', 3),
-                      _buildNavItem(Icons.monitor, 'Live Monitor', 4),
-                      _buildNavItem(Icons.subscriptions, 'Subscription', 5),
+                      _buildNavItem(Icons.subscriptions, 'Subscription', 3),
                     ],
                   ),
                 ),
@@ -415,6 +407,49 @@ class DashboardHomeScreen extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 32),
+
+            // Quick Actions
+            const Text(
+              'Quick Actions',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E3A8A),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            Row(
+              children: [
+                Expanded(
+                  child: _buildActionCard(
+                    'Browse Locations',
+                    'Find screens for your ads',
+                    Icons.location_on,
+                    Colors.blue,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildActionCard(
+                    'Upload New Ad',
+                    'Create advertising content',
+                    Icons.upload,
+                    Colors.green,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildActionCard(
+                    'View Analytics',
+                    'Track campaign performance',
+                    Icons.analytics,
+                    Colors.orange,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -481,6 +516,53 @@ class DashboardHomeScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildActionCard(String title, String description, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E3A8A),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class LocationsScreen extends StatefulWidget {
@@ -491,17 +573,15 @@ class LocationsScreen extends StatefulWidget {
 }
 
 class _LocationsScreenState extends State<LocationsScreen> {
-  final OptiSignsService _optiSignsService = OptiSignsService();
-  List<Map<String, dynamic>> _screens = [];
-  List<Map<String, dynamic>> _filteredScreens = [];
+  List<Map<String, dynamic>> _locations = [];
+  List<Map<String, dynamic>> _filteredLocations = [];
   bool _isLoading = true;
-  bool _connectionError = false;
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _loadOptiSignsScreens();
+    _loadLocations();
   }
 
   @override
@@ -510,113 +590,94 @@ class _LocationsScreenState extends State<LocationsScreen> {
     super.dispose();
   }
 
-  Future<void> _loadOptiSignsScreens() async {
+  Future<void> _loadLocations() async {
     setState(() {
       _isLoading = true;
-      _connectionError = false;
     });
 
-    try {
-      // Load screens directly from OptiSigns
-      final screens = await _optiSignsService.getAvailableScreens();
-      
-      // Transform OptiSigns screen data to match our UI format
-      final transformedScreens = screens.map((screen) {
-        return {
-          'id': screen['id'],
-          'businessName': screen['name'],
-          'address': _extractAddress(screen['location']),
-          'city': _extractCity(screen['location']),
-          'state': _extractState(screen['location']),
-          'zipCode': '',
-          'businessType': _getBusinessType(screen['name']),
-          'estimatedDailyViews': screen['dailyViews'],
-          'pricePerDay': screen['pricePerDay'],
-          'isAvailable': screen['isAvailable'] && screen['status'] == 'online',
-          'status': screen['status'],
-          'resolution': screen['resolution'],
-          'orientation': screen['orientation'],
-          'lastSeen': screen['lastSeen'],
-          'optiSignsId': screen['id'], // Keep original OptiSigns ID
-        };
-      }).toList();
+    // Simulate loading delay
+    await Future.delayed(const Duration(milliseconds: 500));
 
-      setState(() {
-        _screens = transformedScreens;
-        _filteredScreens = transformedScreens;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _connectionError = true;
-      });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error, color: Colors.white),
-              const SizedBox(width: 8),
-              Expanded(child: Text('Failed to load OptiSigns screens: $e')),
-            ],
-          ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          action: SnackBarAction(
-            label: 'Retry',
-            textColor: Colors.white,
-            onPressed: _loadOptiSignsScreens,
-          ),
-        ),
-      );
-    }
+    // Mock location data
+    final locations = [
+      {
+        'id': '1',
+        'businessName': 'Downtown Coffee Shop',
+        'address': '123 Main St',
+        'city': 'New York',
+        'state': 'NY',
+        'zipCode': '10001',
+        'businessType': 'Coffee Shop',
+        'estimatedDailyViews': 500,
+        'pricePerDay': 25.00,
+        'isAvailable': true,
+      },
+      {
+        'id': '2',
+        'businessName': 'Metro Fitness Center',
+        'address': '456 Broadway Ave',
+        'city': 'New York',
+        'state': 'NY',
+        'zipCode': '10002',
+        'businessType': 'Fitness Center',
+        'estimatedDailyViews': 800,
+        'pricePerDay': 45.00,
+        'isAvailable': true,
+      },
+      {
+        'id': '3',
+        'businessName': 'City Mall Food Court',
+        'address': '789 Shopping Blvd',
+        'city': 'Los Angeles',
+        'state': 'CA',
+        'zipCode': '90210',
+        'businessType': 'Shopping Mall',
+        'estimatedDailyViews': 1200,
+        'pricePerDay': 75.00,
+        'isAvailable': false,
+      },
+      {
+        'id': '4',
+        'businessName': 'University Student Center',
+        'address': '321 College Way',
+        'city': 'Austin',
+        'state': 'TX',
+        'zipCode': '78701',
+        'businessType': 'University',
+        'estimatedDailyViews': 600,
+        'pricePerDay': 35.00,
+        'isAvailable': true,
+      },
+      {
+        'id': '5',
+        'businessName': 'Airport Terminal B',
+        'address': '100 Airport Rd',
+        'city': 'Miami',
+        'state': 'FL',
+        'zipCode': '33126',
+        'businessType': 'Airport',
+        'estimatedDailyViews': 2000,
+        'pricePerDay': 120.00,
+        'isAvailable': true,
+      },
+    ];
+
+    setState(() {
+      _locations = locations;
+      _filteredLocations = locations;
+      _isLoading = false;
+    });
   }
 
-  String _extractAddress(String location) {
-    // Extract address from location string (simplified)
-    final parts = location.split(',');
-    return parts.isNotEmpty ? parts[0].trim() : 'Address not available';
-  }
-
-  String _extractCity(String location) {
-    final parts = location.split(',');
-    return parts.length > 1 ? parts[1].trim() : 'Unknown City';
-  }
-
-  String _extractState(String location) {
-    final parts = location.split(',');
-    if (parts.length > 1) {
-      final cityState = parts[1].trim();
-      final stateParts = cityState.split(' ');
-      return stateParts.length > 1 ? stateParts.last : 'Unknown';
-    }
-    return 'Unknown';
-  }
-
-  String _getBusinessType(String screenName) {
-    // Infer business type from screen name
-    final name = screenName.toLowerCase();
-    if (name.contains('coffee')) return 'Coffee Shop';
-    if (name.contains('fitness') || name.contains('gym')) return 'Fitness Center';
-    if (name.contains('mall') || name.contains('shopping')) return 'Shopping Mall';
-    if (name.contains('university') || name.contains('college')) return 'University';
-    if (name.contains('airport')) return 'Airport';
-    if (name.contains('restaurant') || name.contains('food')) return 'Restaurant';
-    if (name.contains('hotel')) return 'Hotel';
-    if (name.contains('retail') || name.contains('store')) return 'Retail Store';
-    return 'Business Location';
-  }
-
-  void _filterScreens(String query) {
+  void _filterLocations(String query) {
     setState(() {
       if (query.isEmpty) {
-        _filteredScreens = _screens;
+        _filteredLocations = _locations;
       } else {
-        _filteredScreens = _screens.where((screen) {
-          return screen['businessName'].toLowerCase().contains(query.toLowerCase()) ||
-                 screen['city'].toLowerCase().contains(query.toLowerCase()) ||
-                 screen['businessType'].toLowerCase().contains(query.toLowerCase());
+        _filteredLocations = _locations.where((location) {
+          return location['businessName'].toLowerCase().contains(query.toLowerCase()) ||
+                 location['city'].toLowerCase().contains(query.toLowerCase()) ||
+                 location['businessType'].toLowerCase().contains(query.toLowerCase());
         }).toList();
       }
     });
@@ -665,7 +726,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
               ),
               child: TextField(
                 controller: _searchController,
-                onChanged: _filterScreens,
+                onChanged: _filterLocations,
                 decoration: const InputDecoration(
                   hintText: 'Search locations, cities, or business types...',
                   prefixIcon: Icon(Icons.search, color: Colors.grey),
@@ -684,7 +745,7 @@ class _LocationsScreenState extends State<LocationsScreen> {
                         color: Color(0xFF1E3A8A),
                       ),
                     )
-                  : _filteredScreens.isEmpty
+                  : _filteredLocations.isEmpty
                       ? const Center(
                           child: Text(
                             'No locations found',
@@ -701,9 +762,9 @@ class _LocationsScreenState extends State<LocationsScreen> {
                             mainAxisSpacing: 16,
                             childAspectRatio: 1.2,
                           ),
-                          itemCount: _filteredScreens.length,
+                          itemCount: _filteredLocations.length,
                           itemBuilder: (context, index) {
-                            final location = _filteredScreens[index];
+                            final location = _filteredLocations[index];
                             return _buildLocationCard(location);
                           },
                         ),
@@ -857,6 +918,157 @@ class _LocationsScreenState extends State<LocationsScreen> {
     );
   }
 
+  void _showLocationDetails(ScreenLocation location) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(location.businessName),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Address: ${location.fullAddress}'),
+              const SizedBox(height: 8),
+              Text('Business Type: ${location.businessType}'),
+              const SizedBox(height: 8),
+              Text('Daily Views: ${location.estimatedViewsFormatted}'),
+              const SizedBox(height: 8),
+              Text('Price: ${location.pricePerDayFormatted}/day'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _selectLocation(location);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1E3A8A),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Book This Screen'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _selectLocation(ScreenLocation location) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Selected ${location.businessName} for advertising!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+}
+
+class AdsScreen extends StatelessWidget {
+  const AdsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      body: const Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'My Advertisements',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E3A8A),
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Manage your advertising content and campaigns',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+              ),
+            ),
+            SizedBox(height: 32),
+            Center(
+              child: Text(
+                'Ads Management Screen - Coming Soon',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SubscriptionScreen extends StatelessWidget {
+  const SubscriptionScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      body: const Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Subscription Management',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E3A8A),
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Manage your subscription plan and billing',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+              ),
+            ),
+            SizedBox(height: 32),
+            Center(
+              child: Text(
+                'Subscription Screen - Coming Soon',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}  
+              ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showLocationDetails(Map<String, dynamic> location) {
     showDialog(
       context: context,
@@ -995,6 +1207,421 @@ class SubscriptionScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}class D
+ashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _screens = [
+    const DashboardHomeScreen(),
+    const LocationsScreen(),
+    const AdsScreen(),
+    const SubscriptionScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Row(
+        children: [
+          // Sidebar
+          Container(
+            width: 250,
+            color: const Color(0xFF1E3A8A),
+            child: Column(
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.tv,
+                          color: Color(0xFF1E3A8A),
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'AdNabbit',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // User Info
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Demo User',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        'Demo Company',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'Professional',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Navigation
+                Expanded(
+                  child: ListView(
+                    children: [
+                      _buildNavItem(Icons.dashboard, 'Dashboard', 0),
+                      _buildNavItem(Icons.location_on, 'Locations', 1),
+                      _buildNavItem(Icons.campaign, 'My Ads', 2),
+                      _buildNavItem(Icons.subscriptions, 'Subscription', 3),
+                    ],
+                  ),
+                ),
+
+                // Logout
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        );
+                      },
+                      icon: const Icon(Icons.logout, color: Colors.white),
+                      label: const Text(
+                        'Logout',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Main Content
+          Expanded(
+            child: _screens[_selectedIndex],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, String title, int index) {
+    final isSelected = _selectedIndex == index;
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      child: ListTile(
+        leading: Icon(
+          icon,
+          color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+        selected: isSelected,
+        selectedTileColor: Colors.white.withOpacity(0.1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        onTap: () {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+      ),
+    );
+  }
+}
+
+class DashboardHomeScreen extends StatelessWidget {
+  const DashboardHomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Welcome back, Demo User!',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E3A8A),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Here\'s an overview of your advertising campaigns',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Stats Cards
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(
+                    'Active Screens',
+                    '3',
+                    '7 remaining',
+                    Icons.tv,
+                    Colors.blue,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildStatCard(
+                    'Total Ads',
+                    '5',
+                    '2 active campaigns',
+                    Icons.campaign,
+                    Colors.green,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildStatCard(
+                    'Monthly Views',
+                    '12.5K',
+                    '+15% from last month',
+                    Icons.visibility,
+                    Colors.orange,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildStatCard(
+                    'Subscription',
+                    'Professional',
+                    'Active until Dec 2024',
+                    Icons.subscriptions,
+                    Colors.purple,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+
+            // Quick Actions
+            const Text(
+              'Quick Actions',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E3A8A),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            Row(
+              children: [
+                Expanded(
+                  child: _buildActionCard(
+                    'Browse Locations',
+                    'Find screens for your ads',
+                    Icons.location_on,
+                    Colors.blue,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildActionCard(
+                    'Upload New Ad',
+                    'Create advertising content',
+                    Icons.upload,
+                    Colors.green,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildActionCard(
+                    'View Analytics',
+                    'Track campaign performance',
+                    Icons.analytics,
+                    Colors.orange,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, String subtitle, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const Spacer(),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E3A8A),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionCard(String title, String description, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E3A8A),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ],
       ),
     );
   }
