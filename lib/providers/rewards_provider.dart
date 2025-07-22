@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/wish_item.dart';
 import '../services/storage_service.dart';
+import '../services/price_service.dart';
 
 class RewardsProvider extends ChangeNotifier {
   List<WishItem> _wishItems = [];
@@ -153,6 +154,67 @@ class RewardsProvider extends ChangeNotifier {
     return sortedWishItems
         .where((item) => !item.isCompleted && totalSavings >= item.targetPrice)
         .toList();
+  }
+
+  // Price comparison and tracking features
+  Future<ProductInfo?> fetchProductInfo(String itemName) async {
+    try {
+      return await PriceService.fetchProductInfo(itemName);
+    } catch (e) {
+      debugPrint('Error fetching product info: $e');
+      return null;
+    }
+  }
+
+  Future<List<PriceComparison>> getPriceComparisons(String itemName) async {
+    try {
+      return await PriceService.getPriceComparisons(itemName);
+    } catch (e) {
+      debugPrint('Error fetching price comparisons: $e');
+      return [];
+    }
+  }
+
+  Future<bool> setPriceAlert(String itemId, double targetPrice) async {
+    try {
+      return await PriceService.setPriceAlert(itemId, targetPrice);
+    } catch (e) {
+      debugPrint('Error setting price alert: $e');
+      return false;
+    }
+  }
+
+  Future<List<DealRecommendation>> getDealRecommendations() async {
+    try {
+      final categories = _wishItems.map((item) => item.category).toSet().toList();
+      return await PriceService.getDealRecommendations(categories);
+    } catch (e) {
+      debugPrint('Error fetching deal recommendations: $e');
+      return [];
+    }
+  }
+
+  Future<void> updateItemWithProductInfo(String itemId) async {
+    try {
+      final index = _wishItems.indexWhere((item) => item.id == itemId);
+      if (index != -1) {
+        final item = _wishItems[index];
+        final productInfo = await PriceService.fetchProductInfo(item.name);
+        
+        if (productInfo != null) {
+          final updatedItem = item.copyWith(
+            targetPrice: productInfo.currentPrice,
+            imageUrl: productInfo.imageUrl,
+          );
+          
+          _wishItems[index] = updatedItem;
+          await StorageService.updateWishItem(updatedItem);
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error updating item with product info: $e');
+    }
   }
 
   // Mock data generator for demo purposes

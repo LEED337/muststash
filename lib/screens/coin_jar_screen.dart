@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/coin_jar_provider.dart';
 import '../utils/formatters.dart';
 import '../utils/theme.dart';
-import '../widgets/mustache_logo.dart';
+
 import '../widgets/add_transaction_dialog.dart';
 
 
@@ -120,11 +120,10 @@ class _CoinJarScreenState extends State<CoinJarScreen> with TickerProviderStateM
             ),
           ),
           const SizedBox(width: 16),
-          const MustacheLogo(
-            size: 40,
-            backgroundColor: Colors.white,
-            letterColor: Colors.black,
-            mustacheColor: AppTheme.primaryGreen,
+          Image.asset(
+            'assets/images/muststash_logo.png',
+            width: 40,
+            height: 40,
           ),
           const SizedBox(width: 16),
           Expanded(

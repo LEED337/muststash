@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:uuid/uuid.dart';
 import '../models/transaction.dart';
 import '../services/storage_service.dart';
+import '../services/bank_simulation_service.dart';
+import '../services/card_service.dart';
 
 class CoinJarProvider extends ChangeNotifier {
   double _totalSavings = 0.0;
@@ -124,11 +126,10 @@ class CoinJarProvider extends ChangeNotifier {
       
       final transaction = Transaction(
         id: const Uuid().v4(),
-        originalAmount: originalAmount,
-        roundedAmount: roundedAmount,
+        amount: originalAmount,
         spareChange: spareChange,
-        merchantName: merchantName,
-        timestamp: DateTime.now(),
+        merchant: merchantName,
+        date: DateTime.now(),
         category: category,
       );
       
@@ -213,6 +214,103 @@ class CoinJarProvider extends ChangeNotifier {
     return breakdown;
   }
 
+  // Card integration features
+  Future<void> monitorCardTransactions() async {
+    try {
+      final newTransactions = await CardService.monitorCardTransactions();
+      
+      for (final transaction in newTransactions) {
+        await addCardTransaction(transaction);
+      }
+      
+      if (newTransactions.isNotEmpty) {
+        debugPrint('Added ${newTransactions.length} new card transactions');
+      }
+    } catch (e) {
+      debugPrint('Error monitoring card transactions: $e');
+    }
+  }
+
+  Future<void> addCardTransaction(Transaction transaction) async {
+    try {
+      _transactions.insert(0, transaction);
+      _totalSavings += transaction.spareChange;
+      
+      await StorageService.addTransaction(transaction);
+      await StorageService.setTotalSavings(_totalSavings);
+      
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error adding card transaction: $e');
+    }
+  }
+
+  // Bank integration features
+  Future<List<BankAccount>> getConnectedAccounts() async {
+    try {
+      return await BankSimulationService.getConnectedAccounts();
+    } catch (e) {
+      debugPrint('Error fetching connected accounts: $e');
+      return [];
+    }
+  }
+
+  Future<bool> connectBankAccount(String bankName, String username, String password) async {
+    try {
+      return await BankSimulationService.connectBankAccount(bankName, username, password);
+    } catch (e) {
+      debugPrint('Error connecting bank account: $e');
+      return false;
+    }
+  }
+
+  Future<List<Transaction>> importTransactions({
+    String? accountId,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final importedTransactions = await BankSimulationService.importTransactions(
+        accountId: accountId,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      // Add imported transactions to our local storage
+      for (final transaction in importedTransactions) {
+        await addImportedTransaction(transaction);
+      }
+
+      return importedTransactions;
+    } catch (e) {
+      debugPrint('Error importing transactions: $e');
+      return [];
+    }
+  }
+
+  Future<void> addImportedTransaction(Transaction transaction) async {
+    try {
+      _transactions.insert(0, transaction);
+      _totalSavings += transaction.spareChange;
+      
+      await StorageService.addTransaction(transaction);
+      await StorageService.setTotalSavings(_totalSavings);
+      
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error adding imported transaction: $e');
+    }
+  }
+
+  Future<List<BankInfo>> getAvailableBanks() async {
+    try {
+      return await BankSimulationService.getAvailableBanks();
+    } catch (e) {
+      debugPrint('Error fetching available banks: $e');
+      return [];
+    }
+  }
+
   List<Transaction> getTransactionsByDateRange(DateTime start, DateTime end) {
     return _transactions.where((t) => 
       t.timestamp.isAfter(start) && 
@@ -239,11 +337,10 @@ class CoinJarProvider extends ChangeNotifier {
       
       final transaction = Transaction(
         id: const Uuid().v4(),
-        originalAmount: originalAmount,
-        roundedAmount: roundedAmount,
+        amount: originalAmount,
         spareChange: spareChange,
-        merchantName: merchants[random.nextInt(merchants.length)],
-        timestamp: DateTime.now().subtract(Duration(
+        merchant: merchants[random.nextInt(merchants.length)],
+        date: DateTime.now().subtract(Duration(
           days: random.nextInt(30),
           hours: random.nextInt(24),
           minutes: random.nextInt(60),

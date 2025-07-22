@@ -6,7 +6,7 @@ import '../providers/coin_jar_provider.dart';
 import '../providers/rewards_provider.dart';
 import '../services/storage_service.dart';
 import '../utils/theme.dart';
-import '../widgets/mustache_logo.dart';
+
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -106,11 +106,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(width: 16),
-          const MustacheLogo(
-            size: 40,
-            backgroundColor: Colors.white,
-            letterColor: Colors.black,
-            mustacheColor: AppTheme.primaryGreen,
+          Image.asset(
+            'assets/images/muststash_logo.png',
+            width: 40,
+            height: 40,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -228,6 +227,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
       'Preferences',
       Icons.settings,
       [
+        _buildSettingsTile(
+          'Linked Cards',
+          'Manage your credit and debit cards',
+          Icons.credit_card,
+          () => context.push('/card-management'),
+        ),
+        _buildSettingsTile(
+          'Bank Connection',
+          'Connect your bank for automatic savings',
+          Icons.account_balance,
+          () => context.push('/bank-connection'),
+        ),
         _buildSwitchTile(
           'Push Notifications',
           'Get notified about savings milestones',

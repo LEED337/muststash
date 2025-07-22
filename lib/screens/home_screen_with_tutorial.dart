@@ -6,63 +6,151 @@ import '../providers/coin_jar_provider.dart';
 import '../providers/rewards_provider.dart';
 import '../utils/formatters.dart';
 import '../utils/theme.dart';
-import '../services/card_service.dart';
-import '../services/transaction_monitor_service.dart';
 
 import '../widgets/tutorial_overlay.dart';
 import '../services/tutorial_service.dart';
 
+class HomeScreenWithTutorial extends StatefulWidget {
+  const HomeScreenWithTutorial({super.key});
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  @override
+  State<HomeScreenWithTutorial> createState() => _HomeScreenWithTutorialState();
+}
+
+class _HomeScreenWithTutorialState extends State<HomeScreenWithTutorial> {
+  bool _showTutorial = false;
+  final GlobalKey _savingsOverviewKey = GlobalKey();
+  final GlobalKey _quickActionsKey = GlobalKey();
+  final GlobalKey _rewardsKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkTutorial();
+  }
+
+  Future<void> _checkTutorial() async {
+    final shouldShow = await TutorialService.shouldShowTutorial(TutorialService.homeTutorialKey);
+    if (shouldShow && mounted) {
+      // Delay to ensure widgets are built
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        if (mounted) {
+          setState(() {
+            _showTutorial = true;
+          });
+        }
+      });
+    }
+  }
+
+  void _onTutorialComplete() {
+    TutorialService.completeTutorial(TutorialService.homeTutorialKey);
+    setState(() {
+      _showTutorial = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.primaryGradient,
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildModernAppBar(context),
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).scaffoldBackgroundColor,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(24),
-                      topRight: Radius.circular(24),
+    return TutorialOverlay(
+      showTutorial: _showTutorial,
+      steps: _getTutorialSteps(),
+      onComplete: _onTutorialComplete,
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: AppTheme.primaryGradient,
+          ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildModernAppBar(context),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24),
+                      ),
                     ),
-                  ),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 8),
-                        _buildWelcomeSection(),
-                        const SizedBox(height: 32),
-                        _buildSavingsOverview(),
-                        const SizedBox(height: 32),
-                        _buildQuickActions(context),
-                        const SizedBox(height: 32),
-                        _buildTopWishItem(),
-                        const SizedBox(height: 32),
-                        _buildRecentActivity(),
-                        const SizedBox(height: 100), // Space for bottom nav
-                      ],
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 8),
+                          _buildWelcomeSection(),
+                          const SizedBox(height: 32),
+                          Container(
+                            key: _savingsOverviewKey,
+                            child: _buildSavingsOverview(),
+                          ),
+                          const SizedBox(height: 32),
+                          Container(
+                            key: _quickActionsKey,
+                            child: _buildQuickActions(context),
+                          ),
+                          const SizedBox(height: 32),
+                          Container(
+                            key: _rewardsKey,
+                            child: _buildTopWishItem(),
+                          ),
+                          const SizedBox(height: 32),
+                          _buildRecentActivity(),
+                          const SizedBox(height: 100), // Space for bottom nav
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
+        bottomNavigationBar: _buildBottomNavigation(context),
       ),
-      bottomNavigationBar: _buildBottomNavigation(context),
     );
+  }
+
+  List<TutorialStep> _getTutorialSteps() {
+    return [
+      TutorialStep(
+        title: 'Welcome to Your Dashboard',
+        description: 'This is your savings overview. Here you can see your total savings, recent transactions, and quick actions.',
+        icon: Icons.home,
+        targetKey: _savingsOverviewKey,
+        tips: const [
+          'Your total savings are displayed at the top',
+          'Weekly progress shows how close you are to your goal',
+          'Bank connection status is shown at the bottom',
+        ],
+      ),
+      TutorialStep(
+        title: 'Quick Actions',
+        description: 'These buttons give you fast access to the most important features like adding rewards and viewing your coin jar.',
+        icon: Icons.flash_on,
+        targetKey: _quickActionsKey,
+        tips: const [
+          'Add Reward: Set savings goals for things you want',
+          'View Activity: See all your transactions',
+          'Connect Bank: Link your account for automatic tracking',
+          'Sync Transactions: Import new transactions from your bank',
+        ],
+      ),
+      TutorialStep(
+        title: 'Your Next Reward',
+        description: 'Track your progress towards your top priority savings goal and see how close you are to affording it.',
+        icon: Icons.card_giftcard,
+        targetKey: _rewardsKey,
+        tips: const [
+          'Top priority goals are highlighted with a star',
+          'Progress bars show how close you are to your goal',
+          'Green badges appear when you can afford something',
+          'Tap to see more details or add new rewards',
+        ],
+      ),
+    ];
   }
 
   Widget _buildModernAppBar(BuildContext context) {
@@ -96,63 +184,6 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
           ),
-          Consumer<AppState>(
-            builder: (context, appState, _) {
-              if (!appState.isPremiumUser) {
-                return Container(
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.goldGradient,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: TextButton(
-                    onPressed: () => _showUpgradeDialog(context),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                    ),
-                    child: const Text(
-                      'Pro',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                );
-              }
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.accentGold,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.star,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'PRO',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          const SizedBox(width: 12),
           Container(
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
@@ -308,47 +339,6 @@ class HomeScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                FutureBuilder<List<dynamic>>(
-                  future: coinJar.getConnectedAccounts(),
-                  builder: (context, snapshot) {
-                    final hasConnectedAccounts = snapshot.hasData && snapshot.data!.isNotEmpty;
-                    return Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            hasConnectedAccounts ? Icons.check_circle : Icons.account_balance,
-                            color: hasConnectedAccounts ? AppTheme.accentGold : Colors.white70,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              hasConnectedAccounts 
-                                  ? 'Bank connected • Auto-sync enabled'
-                                  : 'Connect bank for automatic savings',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.white70,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          if (!hasConnectedAccounts)
-                            Icon(
-                              Icons.arrow_forward_ios,
-                              color: Colors.white70,
-                              size: 16,
-                            ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
               ],
             ),
           ),
@@ -399,21 +389,6 @@ class HomeScreen extends StatelessWidget {
             Expanded(
               child: _buildActionCard(
                 context,
-                icon: Icons.credit_card,
-                title: 'Linked Cards',
-                subtitle: 'Manage your cards',
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF9C27B0), Color(0xFF673AB7)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                onTap: () => context.push('/card-management'),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildActionCard(
-                context,
                 icon: Icons.account_balance,
                 title: 'Connect Bank',
                 subtitle: 'Automatic savings',
@@ -425,57 +400,24 @@ class HomeScreen extends StatelessWidget {
                 onTap: () => context.push('/bank-connection'),
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
+            const SizedBox(width: 16),
             Expanded(
-              child: Consumer<CoinJarProvider>(
-                builder: (context, coinJar, child) {
-                  return FutureBuilder<List<dynamic>>(
-                    future: coinJar.getConnectedAccounts(),
-                    builder: (context, snapshot) {
-                      final hasConnectedAccounts = snapshot.hasData && snapshot.data!.isNotEmpty;
-                      return _buildActionCard(
-                        context,
-                        icon: hasConnectedAccounts ? Icons.sync : Icons.download,
-                        title: hasConnectedAccounts ? 'Sync Transactions' : 'Import Data',
-                        subtitle: hasConnectedAccounts ? 'Update from bank' : 'Get started',
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF2196F3), Color(0xFF1565C0)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        onTap: () async {
-                          if (hasConnectedAccounts) {
-                            // Import transactions
-                            try {
-                              final transactions = await coinJar.importTransactions();
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('${transactions.length} transactions imported!'),
-                                    backgroundColor: AppTheme.primaryGreen,
-                                  ),
-                                );
-                              }
-                            } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Error importing transactions: $e'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              }
-                            }
-                          } else {
-                            context.push('/bank-connection');
-                          }
-                        },
-                      );
-                    },
+              child: _buildActionCard(
+                context,
+                icon: Icons.sync,
+                title: 'Sync Data',
+                subtitle: 'Update transactions',
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF2196F3), Color(0xFF1565C0)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Syncing transactions...'),
+                      backgroundColor: AppTheme.primaryGreen,
+                    ),
                   );
                 },
               ),
@@ -578,7 +520,6 @@ class HomeScreen extends StatelessWidget {
                   border: Border.all(
                     color: Colors.grey.withOpacity(0.2),
                     width: 2,
-                    style: BorderStyle.solid,
                   ),
                 ),
                 child: Column(
@@ -611,34 +552,19 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: AppTheme.goldGradient,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.accentGold.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                    ElevatedButton(
+                      onPressed: () => context.go('/add-reward'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryGreen,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
                       ),
-                      child: ElevatedButton(
-                        onPressed: () => context.go('/add-reward'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 16,
-                          ),
-                        ),
-                        child: const Text(
-                          'Add Your First Reward',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                      child: const Text(
+                        'Add Your First Reward',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -676,26 +602,19 @@ class HomeScreen extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     gradient: AppTheme.goldGradient,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
-                        Icons.star,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
+                      Icon(Icons.star, color: Colors.white, size: 16),
+                      SizedBox(width: 4),
                       Text(
                         'TOP PRIORITY',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
                           fontSize: 11,
@@ -707,26 +626,19 @@ class HomeScreen extends StatelessWidget {
                 if (canAfford) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.green,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
-                          Icons.check_circle,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 4),
+                        Icon(Icons.check_circle, color: Colors.white, size: 16),
+                        SizedBox(width: 4),
                         Text(
                           'READY!',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
                             fontSize: 11,
@@ -748,18 +660,11 @@ class HomeScreen extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                        Colors.grey[100]!,
-                        Colors.grey[200]!,
-                      ],
+                      colors: [Colors.grey[100]!, Colors.grey[200]!],
                     ),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(
-                    Icons.card_giftcard,
-                    color: Colors.grey,
-                    size: 40,
-                  ),
+                  child: const Icon(Icons.card_giftcard, color: Colors.grey, size: 40),
                 ),
                 const SizedBox(width: 20),
                 Expanded(
@@ -802,12 +707,12 @@ class HomeScreen extends StatelessWidget {
                       '${(progress * 100).toInt()}%',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: canAfford ? Colors.green : AppTheme.primaryGreen,
+                        color: AppTheme.primaryGreen,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Container(
                   height: 8,
                   decoration: BoxDecoration(
@@ -819,33 +724,11 @@ class HomeScreen extends StatelessWidget {
                     widthFactor: progress,
                     child: Container(
                       decoration: BoxDecoration(
-                        gradient: canAfford 
-                          ? const LinearGradient(colors: [Colors.green, Colors.lightGreen])
-                          : AppTheme.primaryGradient,
+                        gradient: AppTheme.primaryGradient,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Saved: ${Formatters.currency(coinJar.totalSavings)}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    if (canAfford)
-                      Text(
-                        'Ready to purchase! 🎉',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.green,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                  ],
                 ),
               ],
             ),
@@ -859,7 +742,7 @@ class HomeScreen extends StatelessWidget {
     return Consumer<CoinJarProvider>(
       builder: (context, coinJar, child) {
         final recentTransactions = coinJar.transactions.take(3).toList();
-
+        
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -872,25 +755,13 @@ class HomeScreen extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryGreen.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: TextButton(
-                    onPressed: () => context.go('/coin-jar'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppTheme.primaryGreen,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                    ),
-                    child: const Text(
-                      'View All',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                      ),
+                TextButton(
+                  onPressed: () => context.go('/coin-jar'),
+                  child: Text(
+                    'View All',
+                    style: TextStyle(
+                      color: AppTheme.primaryGreen,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -902,33 +773,31 @@ class HomeScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
+                  color: Colors.grey[50],
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.grey.withOpacity(0.2),
-                    width: 1,
-                  ),
                 ),
                 child: Column(
                   children: [
                     Icon(
-                      Icons.timeline,
+                      Icons.receipt_long,
                       size: 48,
                       color: Colors.grey[400],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     Text(
-                      'No activity yet',
+                      'No transactions yet',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.grey[600],
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 8),
                     Text(
-                      'Your transactions will appear here',
+                      'Your spare change transactions will appear here',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey[600],
+                        color: Colors.grey[500],
                       ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
@@ -936,73 +805,71 @@ class HomeScreen extends StatelessWidget {
             else
               ...recentTransactions.map((transaction) => Container(
                 margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 8,
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 5,
                       offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: AppTheme.primaryGradient,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.add_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryGreen.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              transaction.merchantName,
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              Formatters.timeAgo(transaction.timestamp),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
+                      child: Icon(
+                        Icons.store,
+                        color: AppTheme.primaryGreen,
+                        size: 20,
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryGreen.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            transaction.merchantName,
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            Formatters.timeAgo(transaction.timestamp),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
                           '+${Formatters.currency(transaction.spareChange)}',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             color: AppTheme.primaryGreen,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                        Text(
+                          'from ${Formatters.currency(transaction.originalAmount)}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               )),
           ],
@@ -1018,35 +885,20 @@ class HomeScreen extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(
-                icon: Icons.home_rounded,
-                label: 'Home',
-                isSelected: true,
-                onTap: () {},
-              ),
-              _buildNavItem(
-                icon: Icons.account_balance_wallet_rounded,
-                label: 'Coin Jar',
-                isSelected: false,
-                onTap: () => context.go('/coin-jar'),
-              ),
-              _buildNavItem(
-                icon: Icons.card_giftcard_rounded,
-                label: 'Rewards',
-                isSelected: false,
-                onTap: () => context.go('/rewards'),
-              ),
+              _buildNavItem(context, Icons.home, 'Home', true, () {}),
+              _buildNavItem(context, Icons.savings, 'Coin Jar', false, () => context.go('/coin-jar')),
+              _buildNavItem(context, Icons.card_giftcard, 'Rewards', false, () => context.go('/rewards')),
             ],
           ),
         ),
@@ -1054,78 +906,34 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildNavItem(BuildContext context, IconData icon, String label, bool isActive, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryGreen.withOpacity(0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+          color: isActive ? AppTheme.primaryGreen.withOpacity(0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              color: isSelected ? AppTheme.primaryGreen : Colors.grey[600],
+              color: isActive ? AppTheme.primaryGreen : Colors.grey[600],
               size: 24,
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? AppTheme.primaryGreen : Colors.grey[600],
+                color: isActive ? AppTheme.primaryGreen : Colors.grey[600],
                 fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showUpgradeDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Upgrade to Premium'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Get premium features for just \$5/month:'),
-            SizedBox(height: 16),
-            Text('• No ads'),
-            Text('• Advanced analytics'),
-            Text('• Priority customer support'),
-            Text('• Unlimited wish items'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Maybe Later'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              context.read<AppState>().upgradeToPremium();
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Welcome to Premium! 🎉'),
-                ),
-              );
-            },
-            child: const Text('Upgrade Now'),
-          ),
-        ],
       ),
     );
   }

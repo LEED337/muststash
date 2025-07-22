@@ -28,13 +28,14 @@ dependencies:
   
   # Utilities
   uuid: ^4.2.1
-  intl: ^0.19.0
+  intl: ^0.20.2
   
   # HTTP requests (for future API integration)
   http: ^1.1.2
   
   # Animations
   lottie: ^2.7.0
+  plaid_flutter: ^5.0.1
 
 dev_dependencies:
   flutter_test:

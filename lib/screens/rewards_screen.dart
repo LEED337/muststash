@@ -5,7 +5,7 @@ import '../providers/rewards_provider.dart';
 import '../providers/coin_jar_provider.dart';
 import '../utils/formatters.dart';
 import '../utils/theme.dart';
-import '../widgets/mustache_logo.dart';
+
 
 
 class RewardsScreen extends StatefulWidget {
@@ -120,11 +120,10 @@ class _RewardsScreenState extends State<RewardsScreen> {
             ),
           ),
           const SizedBox(width: 16),
-          const MustacheLogo(
-            size: 40,
-            backgroundColor: Colors.white,
-            letterColor: Colors.black,
-            mustacheColor: AppTheme.primaryGreen,
+          Image.asset(
+            'assets/images/muststash_logo.png',
+            width: 40,
+            height: 40,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -301,6 +300,16 @@ class _RewardsScreenState extends State<RewardsScreen> {
                     icon: Icon(Icons.more_vert, color: Colors.grey[600]),
                     itemBuilder: (context) => [
                       const PopupMenuItem(
+                        value: 'compare',
+                        child: Row(
+                          children: [
+                            Icon(Icons.compare_arrows, color: AppTheme.primaryGreen),
+                            SizedBox(width: 8),
+                            Text('Compare Prices'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
                         value: 'edit',
                         child: Row(
                           children: [
@@ -322,7 +331,9 @@ class _RewardsScreenState extends State<RewardsScreen> {
                       ),
                     ],
                     onSelected: (value) {
-                      if (value == 'delete') {
+                      if (value == 'compare') {
+                        context.push('/price-comparison/${item.id}/${Uri.encodeComponent(item.name)}');
+                      } else if (value == 'delete') {
                         _showDeleteDialog(context, rewards, item.id, item.name);
                       }
                     },

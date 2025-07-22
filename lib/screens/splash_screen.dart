@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/app_state.dart';
 import '../utils/theme.dart';
-import '../widgets/mustache_logo.dart';
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -85,12 +85,11 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ],
                   ),
-                  child: const Center(
-                    child: MustacheLogo(
-                      size: 100,
-                      backgroundColor: Colors.white,
-                      letterColor: Colors.black,
-                      mustacheColor: AppTheme.primaryGreen,
+                  child: Center(
+                    child: Image.asset(
+                      'assets/images/muststash_logo.png',
+                      width: 100,
+                      height: 100,
                     ),
                   ),
                 ),

@@ -5,7 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../providers/rewards_provider.dart';
 import '../models/wish_item.dart';
 import '../utils/theme.dart';
-import '../widgets/mustache_logo.dart';
+
 
 
 class AddRewardScreen extends StatefulWidget {
@@ -54,7 +54,11 @@ class _AddRewardScreenState extends State<AddRewardScreen> {
         ),
         title: Row(
           children: [
-            const MustacheLogo(size: 36),
+            Image.asset(
+              'assets/images/muststash_logo.png',
+              width: 36,
+              height: 36,
+            ),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,

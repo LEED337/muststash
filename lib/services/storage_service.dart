@@ -116,6 +116,28 @@ class StorageService {
     await _prefs?.setDouble(_totalSavingsKey, amount);
   }
 
+  // Boolean storage methods for tutorial system
+  static Future<bool?> getBool(String key) async {
+    return _prefs?.getBool(key);
+  }
+
+  static Future<void> setBool(String key, bool value) async {
+    await _prefs?.setBool(key, value);
+  }
+
+  // String storage methods for API tokens and user data
+  static Future<String?> getString(String key) async {
+    return _prefs?.getString(key);
+  }
+
+  static Future<void> setString(String key, String value) async {
+    await _prefs?.setString(key, value);
+  }
+
+  static Future<void> removeString(String key) async {
+    await _prefs?.remove(key);
+  }
+
   static Future<double> getWeeklyGoal() async {
     return _prefs?.getDouble(_weeklyGoalKey) ?? 25.0;
   }
